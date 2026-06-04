@@ -1,0 +1,27 @@
+# Never commit data — fetch via scripts/download_data.py
+data/
+*.wav
+*.flac
+*.npy
+*.npz
+
+# Model artifacts & logs
+*.pt
+*.pth
+runs/
+checkpoints/
+wandb/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

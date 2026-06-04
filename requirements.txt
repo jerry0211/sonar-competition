@@ -1,0 +1,16 @@
+# Core (Phase 1 tabular baseline runs on just these)
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+
+# Audio (Phase 2+)
+librosa>=0.10
+soundfile>=0.12
+
+# Deep learning (Phase 2+)
+torch>=2.1
+
+# Dev
+pytest>=7.4
+pyyaml>=6.0
