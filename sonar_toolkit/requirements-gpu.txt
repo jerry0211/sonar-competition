@@ -1,0 +1,8 @@
+# Phase 2+ (audio -> CNN on GPU). Install on top of requirements.txt.
+# Kept separate so the Phase 1 CPU path stays torch-free.
+torch
+torchvision
+torchaudio
+librosa
+soundfile
+tqdm

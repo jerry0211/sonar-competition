@@ -1,0 +1,36 @@
+# Phase 2 — audio -> mel-spectrogram -> CNN, GPU-trained, group-aware CV.
+# Thin config; run.py wires it onto the toolkit.
+
+scenario: medium          # simulator difficulty preset to rehearse against
+n_recordings: 200         # synthetic recordings (each yields several windows)
+sr: 22050
+window_s: 2.0
+hop_s: 1.0
+
+feature:
+  kind: mel               # mel | stft | lofar  (resolved to a toolkit feature fn in run.py)
+  n_fft: 1024
+  hop_length: 256
+  n_mels: 64
+
+model:
+  kind: cnn2d             # cnn2d | transfer
+  base: 32                # bumped from 16 now that a GPU is available
+  backbone: resnet18      # only used when kind == transfer
+
+train:
+  epochs: 30
+  batch_size: 64
+  lr: 0.0003
+  weight_decay: 0.0001
+  patience: 6
+  use_amp: true           # auto-disabled on CPU
+  scheduler: cosine
+
+cv:
+  n_folds: 5
+  target_fpr: 0.1         # recall @ this fixed false-positive rate
+
+paths:
+  cache_dir: data/cache/phase2          # on Kaggle: /kaggle/working/cache
+  ckpt_dir: checkpoints/phase2          # on Kaggle: /kaggle/working/checkpoints

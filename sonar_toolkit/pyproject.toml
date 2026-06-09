@@ -1,0 +1,21 @@
+# Makes sonar_toolkit pip-installable. This is what lets Kaggle (and the
+# competition box) do:  pip install "git+https://github.com/<user>/sonar-competition.git"
+# instead of sys.path hacks. Locally: pip install -e .
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sonar-toolkit"
+version = "0.1.0"
+description = "Reusable sonar detection toolkit for hackathon practice."
+requires-python = ">=3.9"
+dependencies = ["numpy", "pandas", "scipy", "scikit-learn", "pyyaml"]
+
+[project.optional-dependencies]
+# GPU / audio path (Phase 2+). On Kaggle these are mostly preinstalled.
+gpu = ["torch", "torchvision", "torchaudio", "librosa", "soundfile", "tqdm"]
+
+[tool.setuptools.packages.find]
+include = ["sonar_toolkit*"]
