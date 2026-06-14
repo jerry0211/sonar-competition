@@ -57,3 +57,84 @@ def segment(y, sr, win_s=2.0, hop_s=1.0):
     """Slice a long recording into fixed windows for frame-level inference."""
     win, hop = int(win_s * sr), int(hop_s * sr)
     return [y[i:i + win] for i in range(0, max(1, len(y) - win + 1), hop)]
+
+
+# ShipsEar class labels embedded in filenames: <id>_<CLASS>.wav
+_SHIPSEAR_CLASSES = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4}
+
+
+def load_shipsear(data_dir, sr=22050, win_s=2.0, hop_s=1.0):
+    """Scan a ShipsEar directory and return windowed waveforms + labels + groups.
+
+    Returns:
+        waveforms : list[np.ndarray]  — each is a fixed-length window
+        labels    : np.ndarray[int]   — class index 0-4 (A–E)
+        groups    : np.ndarray[int]   — recording id (for group-aware CV)
+        class_names: dict             — {index: letter}
+    """
+    data_dir = Path(data_dir)
+    wav_files = sorted(data_dir.glob("*.wav"))
+    if not wav_files:
+        raise FileNotFoundError(f"No .wav files found in {data_dir}")
+
+    waveforms, labels, groups = [], [], []
+    for rec_id, path in enumerate(wav_files):
+        # Filename convention: <anything>_<CLASS>.wav  e.g. "01_A.wav"
+        stem = path.stem.upper()
+        letter = stem.split("_")[-1]
+        if letter not in _SHIPSEAR_CLASSES:
+            continue
+        label = _SHIPSEAR_CLASSES[letter]
+
+        y, _ = load_audio(path, sr=sr)
+        for win in segment(y, sr, win_s=win_s, hop_s=hop_s):
+            waveforms.append(win)
+            labels.append(label)
+            groups.append(rec_id)
+
+    class_names = {v: k for k, v in _SHIPSEAR_CLASSES.items()}
+    return waveforms, np.asarray(labels, dtype=int), np.asarray(groups, dtype=int), class_names
+
+
+# DeepShip class labels are subfolder names.
+_DEEPSHIP_CLASSES = {"Cargo": 0, "Passengership": 1, "Tanker": 2, "Tug": 3}
+
+
+def load_deepship(data_dir, sr=22050, win_s=2.0, hop_s=1.0):
+    """Scan a DeepShip directory tree and return windowed waveforms + labels + groups.
+
+    Expected layout:
+        data_dir/
+            Cargo/          *.wav
+            Passengership/  *.wav
+            Tanker/         *.wav
+            Tug/            *.wav
+
+    Returns:
+        waveforms  : list[np.ndarray]  — fixed-length windows
+        labels     : np.ndarray[int]   — 0=Cargo 1=Passengership 2=Tanker 3=Tug
+        groups     : np.ndarray[int]   — recording id (for group-aware CV)
+        class_names: dict              — {index: class_name}
+    """
+    data_dir = Path(data_dir)
+    waveforms, labels, groups = [], [], []
+    rec_id = 0
+    for class_name, label in sorted(_DEEPSHIP_CLASSES.items(), key=lambda x: x[1]):
+        class_dir = data_dir / class_name
+        if not class_dir.exists():
+            continue
+        for path in sorted(class_dir.glob("*.wav")):
+            y, _ = load_audio(path, sr=sr)
+            for win in segment(y, sr, win_s=win_s, hop_s=hop_s):
+                waveforms.append(win)
+                labels.append(label)
+                groups.append(rec_id)
+            rec_id += 1
+
+    if not waveforms:
+        raise FileNotFoundError(
+            f"No DeepShip WAV files found under {data_dir}. "
+            "Expected subfolders: Cargo, Passengership, Tanker, Tug"
+        )
+    class_names = {v: k for k, v in _DEEPSHIP_CLASSES.items()}
+    return waveforms, np.asarray(labels, dtype=int), np.asarray(groups, dtype=int), class_names

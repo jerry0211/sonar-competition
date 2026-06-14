@@ -1,0 +1,32 @@
+data_dir: sonar_toolkit/data/DeepShip-main   # GitHub 샘플 위치 (전체 데이터는 이메일 요청 필요)
+
+sr: 22050
+window_s: 2.0
+hop_s: 1.0
+
+feature:
+  n_fft: 1024
+  hop_length: 256
+  n_mels: 128
+
+model:
+  kind: cnn2d             # cnn2d | transfer
+  base: 32
+  backbone: resnet18      # kind == transfer 일 때만 사용
+
+train:
+  epochs: 30
+  batch_size: 64
+  lr: 0.0003
+  weight_decay: 0.0001
+  patience: 6
+  use_amp: true
+  scheduler: cosine
+
+cv:
+  n_folds: 3              # Tug 녹음이 3개뿐이라 5-fold 불가
+  target_fpr: 0.1
+
+paths:
+  cache_dir: sonar_toolkit/data/cache/deepship
+  ckpt_dir: checkpoints/deepship
