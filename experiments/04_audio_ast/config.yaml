@@ -1,0 +1,50 @@
+# Phase 4 — audio -> mel-spectrogram -> Audio Spectrogram Transformer (AST)
+# Group-aware CV, scored on recall@FPR (detection metric).
+
+# --- data source ---
+# Point data_dir at a folder of labelled audio files, OR set use_simulator: true
+# to generate synthetic recordings via sonar_toolkit.simulator.
+use_simulator: true
+data_dir: data/audio            # ignored when use_simulator is true
+scenario: medium                # simulator difficulty preset
+n_recordings: 200
+sr: 16000                       # AST canonical sample rate
+
+# --- windowing ---
+window_s: 2.0
+hop_s: 1.0
+
+# --- mel spectrogram ---
+feature:
+  n_fft: 512
+  hop_length: 160
+  n_mels: 128                   # AST default input height
+
+# --- AST model ---
+model:
+  # TODO: update this path once the AST wrapper lands in sonar_toolkit/models/
+  pretrained: true              # use ImageNet-pretrained DeiT backbone
+  target_length: 200            # time-axis patches (set to match window_s / hop)
+  freeze_backbone_epochs: 3     # freeze encoder for N epochs, then unfreeze
+
+# --- training ---
+train:
+  epochs: 30
+  batch_size: 32                # AST is heavier than CNN; smaller batch
+  lr: 0.00005                   # lower LR for fine-tuning a pretrained transformer
+  weight_decay: 0.0001
+  patience: 7
+  use_amp: true
+  scheduler: cosine
+  grad_clip: 1.0
+  warmup_epochs: 2              # linear warmup before cosine decay
+
+# --- cross-validation ---
+cv:
+  n_folds: 5
+  target_fpr: 0.1
+
+# --- paths ---
+paths:
+  cache_dir: data/cache/phase4_ast
+  ckpt_dir: checkpoints/phase4_ast
